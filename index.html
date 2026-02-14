@@ -50,6 +50,7 @@ canvas{
   left:0;
   width:100%;
   height:100%;
+  touch-action:none;
 }
 
 button{
@@ -86,13 +87,6 @@ button{
   border:none;
 }
 
-.highlight{
-  background:gold;
-  color:#c40000;
-  font-weight:bold;
-  border-radius:6px;
-}
-
 .falling{
   position:fixed;
   top:-20px;
@@ -117,13 +111,14 @@ button{
 
 <div>
   <button onclick="resetGame()">Cào lại</button>
-  <button onclick="toggleMusic()">🎵 Nhạc</button>
+  <button onclick="toggleMusic()">🎵 Bật / Tắt Nhạc</button>
 </div>
 
 <div class="prize-list" id="prizeList"></div>
 
-<audio id="bgMusic" loop>
-  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+<!-- 🔥 DÙNG FILE MP3 LOCAL -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="./tet.mp3" type="audio/mpeg">
 </audio>
 
 <script>
@@ -139,16 +134,13 @@ const prizes = [
   {name:"500.000đ", icon:"🏆", rate:0.2, color:"#ffd166"}
 ];
 
-function renderPrizeList(selected=null){
+function renderPrizeList(){
   const list=document.getElementById("prizeList");
-  const total=prizes.reduce((s,p)=>s+p.rate,0);
   list.innerHTML="<h3>🎁 Danh sách mệnh giá</h3>";
-
   prizes.forEach(p=>{
-    const percent=((p.rate/total)*100).toFixed(2);
     const div=document.createElement("div");
     div.className="prize-item";
-    div.innerHTML=`<span>${p.icon} ${p.name}</span></span>`;
+    div.innerHTML=`<span>${p.icon} ${p.name}</span>`;
     list.appendChild(div);
   });
 }
@@ -167,7 +159,6 @@ function startGame(){
   const result=document.getElementById("result");
   result.innerHTML=`${prize.icon} ${prize.name}`;
   result.style.background=prize.color;
-  renderPrizeList(prize.name);
 
   const canvas=document.getElementById("scratch");
   const ctx=canvas.getContext("2d");
@@ -198,19 +189,36 @@ function startGame(){
 
   canvas.onmousedown=()=>drawing=true;
   canvas.onmouseup=()=>drawing=false;
+  canvas.onmouseleave=()=>drawing=false;
   canvas.onmousemove=(e)=>{ if(drawing) scratch(e); };
 
-  canvas.ontouchstart=(e)=>{ drawing=true; scratch(e); };
-  canvas.ontouchend=()=>drawing=false;
-  canvas.ontouchmove=(e)=>{ scratch(e); };
+  canvas.addEventListener("touchstart",(e)=>{
+    drawing=true;
+    scratch(e);
+  },{passive:false});
+
+  canvas.addEventListener("touchend",()=>drawing=false);
+
+  canvas.addEventListener("touchmove",(e)=>{
+    e.preventDefault();
+    if(drawing) scratch(e);
+  },{passive:false});
 }
 
 function resetGame(){ startGame(); }
 
 function toggleMusic(){
   const m=document.getElementById("bgMusic");
-  m.paused?m.play():m.pause();
+  m.paused ? m.play() : m.pause();
 }
+
+/* 🔥 AUTO PLAY SAU LẦN CHẠM ĐẦU TIÊN */
+document.addEventListener("touchstart", function autoPlayOnce(){
+  const music = document.getElementById("bgMusic");
+  music.play();
+  document.removeEventListener("touchstart", autoPlayOnce);
+});
+
 
 function createFlower(){
   const f=document.createElement("div");

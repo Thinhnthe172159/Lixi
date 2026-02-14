@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cào Lì Xì Tết 2026</title>
+
+<style>
+body{
+  margin:0;
+  font-family:"Segoe UI",sans-serif;
+  text-align:center;
+  background:linear-gradient(135deg,#b30000,#ff1a1a);
+  color:#fff;
+  overflow-x:hidden;
+}
+
+h1{
+  margin-top:15px;
+  font-size:clamp(18px,5vw,28px);
+  text-shadow:2px 2px 5px #000;
+}
+
+.card{
+  position:relative;
+  width:90%;
+  max-width:350px;
+  aspect-ratio: 16/10;
+  margin:25px auto;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  border:3px solid gold;
+}
+
+#result{
+  position:absolute;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(20px,6vw,32px);
+  font-weight:bold;
+}
+
+canvas{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+}
+
+button{
+  padding:10px 18px;
+  font-size:14px;
+  border:none;
+  border-radius:10px;
+  background:gold;
+  color:#c40000;
+  font-weight:bold;
+  cursor:pointer;
+  margin:6px;
+}
+
+.prize-list{
+  width:90%;
+  max-width:380px;
+  margin:15px auto;
+  background:rgba(255,255,255,0.1);
+  border-radius:15px;
+  padding:10px;
+  border:2px solid gold;
+  font-size:14px;
+}
+
+.prize-item{
+  display:flex;
+  justify-content:space-between;
+  padding:6px;
+  border-bottom:1px solid rgba(255,255,255,0.2);
+}
+
+.prize-item:last-child{
+  border:none;
+}
+
+.highlight{
+  background:gold;
+  color:#c40000;
+  font-weight:bold;
+  border-radius:6px;
+}
+
+.falling{
+  position:fixed;
+  top:-20px;
+  font-size:18px;
+  animation:fall linear infinite;
+}
+
+@keyframes fall{
+  to{ transform:translateY(110vh); }
+}
+</style>
+</head>
+
+<body>
+
+<h1>🧧 CÀO LÌ XÌ MAY MẮN 2026 🧧</h1>
+
+<div class="card">
+  <div id="result"></div>
+  <canvas id="scratch"></canvas>
+</div>
+
+<div>
+  <button onclick="resetGame()">Cào lại</button>
+  <button onclick="toggleMusic()">🎵 Nhạc</button>
+</div>
+
+<div class="prize-list" id="prizeList"></div>
+
+<audio id="bgMusic" loop>
+  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+
+const prizes = [
+  {name:"5.000đ", icon:"🧧", rate:8, color:"#ffadad"},
+  {name:"10.000đ", icon:"💰", rate:28, color:"#ef233c"},
+  {name:"20.000đ", icon:"🎁", rate:35, color:"#ffbe0b"},
+  {name:"30.000đ", icon:"🎉", rate:15, color:"#ffd166"},
+  {name:"50.000đ", icon:"💎", rate:10, color:"#3a86ff"},
+  {name:"100.000đ", icon:"👑", rate:3, color:"#8338ec"},
+  {name:"200.000đ", icon:"🔥", rate:0.8, color:"#06d6a0"},
+  {name:"500.000đ", icon:"🏆", rate:0.2, color:"#ffd166"}
+];
+
+function renderPrizeList(selected=null){
+  const list=document.getElementById("prizeList");
+  const total=prizes.reduce((s,p)=>s+p.rate,0);
+  list.innerHTML="<h3>🎁 Danh sách mệnh giá</h3>";
+
+  prizes.forEach(p=>{
+    const percent=((p.rate/total)*100).toFixed(2);
+    const div=document.createElement("div");
+    div.className="prize-item";
+    div.innerHTML=`<span>${p.icon} ${p.name}</span><span>${percent}%</span>`;
+    list.appendChild(div);
+  });
+}
+
+function weightedRandom(arr){
+  const total=arr.reduce((s,p)=>s+p.rate,0);
+  let rand=Math.random()*total;
+  for(let p of arr){
+    if(rand<p.rate) return p;
+    rand-=p.rate;
+  }
+}
+
+function startGame(){
+  const prize=weightedRandom(prizes);
+  const result=document.getElementById("result");
+  result.innerHTML=`${prize.icon} ${prize.name}`;
+  result.style.background=prize.color;
+  renderPrizeList(prize.name);
+
+  const canvas=document.getElementById("scratch");
+  const ctx=canvas.getContext("2d");
+
+  canvas.width=canvas.offsetWidth;
+  canvas.height=canvas.offsetHeight;
+
+  ctx.globalCompositeOperation="source-over";
+  ctx.fillStyle="#990000";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  ctx.fillStyle="gold";
+  ctx.font="bold 20px sans-serif";
+  ctx.fillText("Cào ở đây!",canvas.width/4,canvas.height/2);
+
+  ctx.globalCompositeOperation="destination-out";
+
+  let drawing=false;
+
+  function scratch(e){
+    const rect=canvas.getBoundingClientRect();
+    const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+    const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+    ctx.beginPath();
+    ctx.arc(x,y,25,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  canvas.onmousedown=()=>drawing=true;
+  canvas.onmouseup=()=>drawing=false;
+  canvas.onmousemove=(e)=>{ if(drawing) scratch(e); };
+
+  canvas.ontouchstart=(e)=>{ drawing=true; scratch(e); };
+  canvas.ontouchend=()=>drawing=false;
+  canvas.ontouchmove=(e)=>{ scratch(e); };
+}
+
+function resetGame(){ startGame(); }
+
+function toggleMusic(){
+  const m=document.getElementById("bgMusic");
+  m.paused?m.play():m.pause();
+}
+
+function createFlower(){
+  const f=document.createElement("div");
+  f.className="falling";
+  f.innerHTML="🌸";
+  f.style.left=Math.random()*100+"vw";
+  f.style.animationDuration=(3+Math.random()*5)+"s";
+  document.body.appendChild(f);
+  setTimeout(()=>f.remove(),8000);
+}
+setInterval(createFlower,700);
+
+renderPrizeList();
+startGame();
+
+</script>
+
+</body>
+</html>

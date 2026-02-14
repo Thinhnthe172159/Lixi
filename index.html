@@ -148,7 +148,7 @@ function renderPrizeList(selected=null){
     const percent=((p.rate/total)*100).toFixed(2);
     const div=document.createElement("div");
     div.className="prize-item";
-    div.innerHTML=`<span>${p.icon} ${p.name}</span><span>${percent}%</span>`;
+    div.innerHTML=`<span>${p.icon} ${p.name}</span></span>`;
     list.appendChild(div);
   });
 }
